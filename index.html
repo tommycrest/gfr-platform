@@ -1,0 +1,628 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced GFR Calculator for Physicians</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0d47a1',
+                            teal: '#00897b',
+                            light: '#e3f2fd',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #0d47a1 0%, #00897b 100%);
+        }
+        
+        .result-card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .formula-card {
+            border-left: 4px solid #0d47a1;
+        }
+        
+        .tab-active {
+            border-bottom: 3px solid #0d47a1;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-heartbeat text-3xl"></i>
+                    <h1 class="text-2xl font-bold">GFR<span class="font-light">Calc</span></h1>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#calculator" class="hover:text-blue-200 transition">Calculator</a>
+                    <a href="#formulas" class="hover:text-blue-200 transition">Formulas</a>
+                    <a href="#about" class="hover:text-blue-200 transition">About</a>
+                    <a href="#resources" class="hover:text-blue-200 transition">Resources</a>
+                </nav>
+                <button class="md:hidden text-xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <div class="mt-16 mb-12 text-center">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">Advanced GFR Estimation</h2>
+                <p class="text-xl md:text-2xl max-w-3xl mx-auto">Precision renal function assessment with creatinine and cystatin C based formulas for clinical practice</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Calculator Section -->
+    <section id="calculator" class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">GFR Calculator</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Select your preferred formula and enter patient parameters for accurate glomerular filtration rate estimation</p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto bg-medical-light rounded-xl p-6 shadow-md">
+                <!-- Formula Tabs -->
+                <div class="flex border-b border-gray-200 mb-8">
+                    <button id="creatinine-tab" class="px-6 py-3 text-medical-blue tab-active">Creatinine-Based</button>
+                    <button id="cystatin-tab" class="px-6 py-3 text-gray-600">Cystatin C-Based</button>
+                    <button id="combined-tab" class="px-6 py-3 text-gray-600">Combined</button>
+                </div>
+                
+                <!-- Creatinine Form -->
+                <div id="creatinine-form" class="form-content">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Serum Creatinine (mg/dL)</label>
+                            <input type="number" id="scr" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent" step="0.01" min="0.1" max="20">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Age (years)</label>
+                            <input type="number" id="age" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent" min="1" max="120">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Gender</label>
+                            <select id="gender" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Race</label>
+                            <select id="race" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent">
+                                <option value="non-black">Non-African American</option>
+                                <option value="black">African American</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 flex justify-center">
+                        <button id="calculate-creatinine" class="bg-medical-blue hover:bg-blue-800 text-white font-medium py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105">
+                            Calculate GFR <i class="fas fa-calculator ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cystatin Form (hidden by default) -->
+                <div id="cystatin-form" class="form-content hidden">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Serum Cystatin C (mg/L)</label>
+                            <input type="number" id="cys" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent" step="0.01" min="0.1" max="10">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Age (years)</label>
+                            <input type="number" id="age-cys" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent" min="1" max="120">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Gender</label>
+                            <select id="gender-cys" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 flex justify-center">
+                        <button id="calculate-cystatin" class="bg-medical-blue hover:bg-blue-800 text-white font-medium py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105">
+                            Calculate GFR <i class="fas fa-calculator ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Combined Form (hidden by default) -->
+                <div id="combined-form" class="form-content hidden">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Serum Creatinine (mg/dL)</label>
+                            <input type="number" id="scr-comb" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent" step="0.01" min="0.1" max="20">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Serum Cystatin C (mg/L)</label>
+                            <input type="number" id="cys-comb" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent" step="0.01" min="0.1" max="10">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Age (years)</label>
+                            <input type="number" id="age-comb" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent" min="1" max="120">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Gender</label>
+                            <select id="gender-comb" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Race</label>
+                            <select id="race-comb" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent">
+                                <option value="non-black">Non-African American</option>
+                                <option value="black">African American</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 flex justify-center">
+                        <button id="calculate-combined" class="bg-medical-blue hover:bg-blue-800 text-white font-medium py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105">
+                            Calculate GFR <i class="fas fa-calculator ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results Section -->
+            <div id="results" class="max-w-4xl mx-auto mt-8 hidden">
+                <div class="result-card bg-white rounded-xl p-6 shadow-lg">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">GFR Estimation Results</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="bg-medical-light p-4 rounded-lg">
+                            <p class="text-gray-600">Estimated GFR</p>
+                            <p id="gfr-value" class="text-3xl font-bold text-medical-blue">--</p>
+                            <p id="gfr-unit" class="text-gray-500">mL/min/1.73m²</p>
+                        </div>
+                        <div class="bg-medical-light p-4 rounded-lg">
+                            <p class="text-gray-600">KDIGO Stage</p>
+                            <p id="kdigo-stage" class="text-3xl font-bold text-medical-teal">--</p>
+                            <p id="kdigo-desc" class="text-gray-500">Chronic Kidney Disease</p>
+                        </div>
+                        <div class="bg-medical-light p-4 rounded-lg">
+                            <p class="text-gray-600">Formula Used</p>
+                            <p id="formula-used" class="text-xl font-medium text-gray-800">--</p>
+                            <p class="text-gray-500 text-sm mt-1">See details below</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-medium text-gray-700 mb-2">Clinical Interpretation</h4>
+                        <p id="clinical-interpretation" class="text-gray-600">Enter patient parameters and calculate to see interpretation.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Formulas Section -->
+    <section id="formulas" class="py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">GFR Estimation Formulas</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Evidence-based equations validated in clinical studies</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- CKD-EPI Creatinine -->
+                <div class="formula-card bg-white p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-medical-blue text-white p-3 rounded-full mr-4">
+                            <i class="fas fa-vial text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">CKD-EPI Creatinine</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Most widely used creatinine-based equation with improved accuracy at higher GFR levels compared to MDRD.</p>
+                    <div class="bg-gray-100 p-4 rounded">
+                        <p class="text-sm font-mono text-gray-700">
+                            GFR = 141 × min(SCr/κ,1)ᵅ × max(SCr/κ,1)⁻¹.²⁰⁹ × 0.993ᴬᵍᵉ × 1.018 [if female] × 1.159 [if black]
+                        </p>
+                    </div>
+                    <div class="mt-4 text-sm text-gray-500">
+                        <p><span class="font-medium">κ:</span> 0.7 (females), 0.9 (males)</p>
+                        <p><span class="font-medium">α:</span> -0.329 (females), -0.411 (males)</p>
+                    </div>
+                </div>
+                
+                <!-- CKD-EPI Cystatin C -->
+                <div class="formula-card bg-white p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-medical-teal text-white p-3 rounded-full mr-4">
+                            <i class="fas fa-dna text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">CKD-EPI Cystatin C</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Alternative to creatinine-based equations, less affected by muscle mass and diet.</p>
+                    <div class="bg-gray-100 p-4 rounded">
+                        <p class="text-sm font-mono text-gray-700">
+                            GFR = 133 × min(SCys/0.8,1)⁻⁰.⁴⁹⁹ × max(SCys/0.8,1)⁻¹.³²⁸ × 0.996ᴬᵍᵉ × 0.932 [if female]
+                        </p>
+                    </div>
+                    <div class="mt-4 text-sm text-gray-500">
+                        <p><span class="font-medium">SCys:</span> Serum cystatin C in mg/L</p>
+                        <p><span class="font-medium">Ref:</span> Inker et al. (2012)</p>
+                    </div>
+                </div>
+                
+                <!-- CKD-EPI Combined -->
+                <div class="formula-card bg-white p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-purple-600 text-white p-3 rounded-full mr-4">
+                            <i class="fas fa-code-branch text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">CKD-EPI Combined</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Most accurate equation combining both creatinine and cystatin C measurements.</p>
+                    <div class="bg-gray-100 p-4 rounded">
+                        <p class="text-sm font-mono text-gray-700">
+                            GFR = 135 × min(SCr/κ,1)ᵅ × max(SCr/κ,1)⁻⁰.⁶⁰¹ × min(SCys/0.8,1)⁻⁰.³⁷⁵ × max(SCys/0.8,1)⁻⁰.⁷¹¹ × 0.995ᴬᵍᵉ × 1.018 [if female] × 1.159 [if black]
+                        </p>
+                    </div>
+                    <div class="mt-4 text-sm text-gray-500">
+                        <p><span class="font-medium">κ:</span> 0.7 (females), 0.9 (males)</p>
+                        <p><span class="font-medium">α:</span> -0.248 (females), -0.207 (males)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">About This Calculator</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">Developed for clinicians by nephrology specialists</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Why Accurate GFR Matters</h3>
+                        <p class="text-gray-600 mb-4">Glomerular filtration rate (GFR) is the best overall index of kidney function. Accurate GFR estimation is essential for:</p>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-medical-teal mt-1 mr-2"></i>
+                                <span>Detection and staging of chronic kidney disease (CKD)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-medical-teal mt-1 mr-2"></i>
+                                <span>Drug dosing adjustments for renally excreted medications</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-medical-teal mt-1 mr-2"></i>
+                                <span>Assessing risk of adverse outcomes from CKD</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-medical-teal mt-1 mr-2"></i>
+                                <span>Timing of referral to nephrology</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-medical-light rounded-xl p-6">
+                        <h4 class="text-xl font-semibold text-gray-800 mb-4">KDIGO CKD Classification</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                                <thead class="bg-medical-blue text-white">
+                                    <tr>
+                                        <th class="py-2 px-4 text-left">Stage</th>
+                                        <th class="py-2 px-4 text-left">GFR</th>
+                                        <th class="py-2 px-4 text-left">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="py-2 px-4">G1</td>
+                                        <td class="py-2 px-4">≥90</td>
+                                        <td class="py-2 px-4">Normal or high</td>
+                                    </tr>
+                                    <tr class="bg-gray-50">
+                                        <td class="py-2 px-4">G2</td>
+                                        <td class="py-2 px-4">60-89</td>
+                                        <td class="py-2 px-4">Mildly decreased</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 px-4">G3a</td>
+                                        <td class="py-2 px-4">45-59</td>
+                                        <td class="py-2 px-4">Mild-moderate</td>
+                                    </tr>
+                                    <tr class="bg-gray-50">
+                                        <td class="py-2 px-4">G3b</td>
+                                        <td class="py-2 px-4">30-44</td>
+                                        <td class="py-2 px-4">Moderate-severe</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 px-4">G4</td>
+                                        <td class="py-2 px-4">15-29</td>
+                                        <td class="py-2 px-4">Severely decreased</td>
+                                    </tr>
+                                    <tr class="bg-gray-50">
+                                        <td class="py-2 px-4">G5</td>
+                                        <td class="py-2 px-4">&lt;15</td>
+                                        <td class="py-2 px-4">Kidney failure</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section id="resources" class="py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Clinical Resources</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">References and tools for renal function assessment</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Key References</h3>
+                        <ul class="space-y-3">
+                            <li>
+                                <a href="#" class="text-medical-blue hover:underline flex items-start">
+                                    <i class="fas fa-file-pdf text-red-500 mt-1 mr-2"></i>
+                                    <span>KDIGO 2012 Clinical Practice Guideline for CKD Evaluation</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-medical-blue hover:underline flex items-start">
+                                    <i class="fas fa-external-link-alt text-gray-500 mt-1 mr-2"></i>
+                                    <span>Levey AS, et al. A New Equation to Estimate GFR. Ann Intern Med 2009</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-medical-blue hover:underline flex items-start">
+                                    <i class="fas fa-external-link-alt text-gray-500 mt-1 mr-2"></i>
+                                    <span>Inker LA, et al. Estimating GFR from Cystatin C Alone or with Creatinine. NEJM 2012</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Drug Dosing Tools</h3>
+                        <ul class="space-y-3">
+                            <li>
+                                <a href="#" class="text-medical-blue hover:underline flex items-start">
+                                    <i class="fas fa-pills text-purple-500 mt-1 mr-2"></i>
+                                    <span>Renal Drug Dosing Guidelines</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-medical-blue hover:underline flex items-start">
+                                    <i class="fas fa-syringe text-blue-500 mt-1 mr-2"></i>
+                                    <span>Contrast Media Risk Calculator</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="text-medical-blue hover:underline flex items-start">
+                                    <i class="fas fa-chart-line text-green-500 mt-1 mr-2"></i>
+                                    <span>GFR Trend Analysis Tool</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-heartbeat text-2xl"></i>
+                        <h2 class="text-xl font-bold">GFR<span class="font-light">Calc</span></h2>
+                    </div>
+                    <p class="text-gray-400 mt-2">Precision renal function assessment for clinicians</p>
+                </div>
+                
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-linkedin text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">
+                        <i class="fas fa-envelope text-xl"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>© 2023 GFRCalc. For clinical use only. Not intended for patient self-assessment.</p>
+                <p class="mt-2 text-sm">This tool is based on CKD-EPI equations and follows KDIGO guidelines.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Tab switching functionality
+        document.getElementById('creatinine-tab').addEventListener('click', function() {
+            document.querySelectorAll('.form-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('creatinine-form').classList.remove('hidden');
+            
+            document.querySelectorAll('[id$="-tab"]').forEach(el => {
+                el.classList.remove('tab-active', 'text-medical-blue');
+                el.classList.add('text-gray-600');
+            });
+            this.classList.add('tab-active', 'text-medical-blue');
+            this.classList.remove('text-gray-600');
+        });
+        
+        document.getElementById('cystatin-tab').addEventListener('click', function() {
+            document.querySelectorAll('.form-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('cystatin-form').classList.remove('hidden');
+            
+            document.querySelectorAll('[id$="-tab"]').forEach(el => {
+                el.classList.remove('tab-active', 'text-medical-blue');
+                el.classList.add('text-gray-600');
+            });
+            this.classList.add('tab-active', 'text-medical-blue');
+            this.classList.remove('text-gray-600');
+        });
+        
+        document.getElementById('combined-tab').addEventListener('click', function() {
+            document.querySelectorAll('.form-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('combined-form').classList.remove('hidden');
+            
+            document.querySelectorAll('[id$="-tab"]').forEach(el => {
+                el.classList.remove('tab-active', 'text-medical-blue');
+                el.classList.add('text-gray-600');
+            });
+            this.classList.add('tab-active', 'text-medical-blue');
+            this.classList.remove('text-gray-600');
+        });
+        
+        // Creatinine-based GFR calculation
+        document.getElementById('calculate-creatinine').addEventListener('click', function() {
+            const scr = parseFloat(document.getElementById('scr').value);
+            const age = parseInt(document.getElementById('age').value);
+            const gender = document.getElementById('gender').value;
+            const race = document.getElementById('race').value;
+            
+            if (isNaN(scr) || isNaN(age)) {
+                alert('Please enter valid values for all fields');
+                return;
+            }
+            
+            // CKD-EPI Creatinine equation
+            let kappa = gender === 'female' ? 0.7 : 0.9;
+            let alpha = gender === 'female' ? -0.329 : -0.411;
+            let raceCoeff = race === 'black' ? 1.159 : 1.0;
+            let genderCoeff = gender === 'female' ? 1.018 : 1.0;
+            
+            let gfr = 141 * Math.min(scr/kappa, 1)**alpha * Math.max(scr/kappa, 1)**-1.209 * 0.993**age * genderCoeff * raceCoeff;
+            gfr = Math.round(gfr * 100) / 100;
+            
+            displayResults(gfr, 'CKD-EPI Creatinine Equation (2009)');
+        });
+        
+        // Cystatin-based GFR calculation
+        document.getElementById('calculate-cystatin').addEventListener('click', function() {
+            const cys = parseFloat(document.getElementById('cys').value);
+            const age = parseInt(document.getElementById('age-cys').value);
+            const gender = document.getElementById('gender-cys').value;
+            
+            if (isNaN(cys) || isNaN(age)) {
+                alert('Please enter valid values for all fields');
+                return;
+            }
+            
+            // CKD-EPI Cystatin C equation
+            let genderCoeff = gender === 'female' ? 0.932 : 1.0;
+            
+            let gfr = 133 * Math.min(cys/0.8, 1)**-0.499 * Math.max(cys/0.8, 1)**-1.328 * 0.996**age * genderCoeff;
+            gfr = Math.round(gfr * 100) / 100;
+            
+            displayResults(gfr, 'CKD-EPI Cystatin C Equation (2012)');
+        });
+        
+        // Combined GFR calculation
+        document.getElementById('calculate-combined').addEventListener('click', function() {
+            const scr = parseFloat(document.getElementById('scr-comb').value);
+            const cys = parseFloat(document.getElementById('cys-comb').value);
+            const age = parseInt(document.getElementById('age-comb').value);
+            const gender = document.getElementById('gender-comb').value;
+            const race = document.getElementById('race-comb').value;
+            
+            if (isNaN(scr) || isNaN(cys) || isNaN(age)) {
+                alert('Please enter valid values for all fields');
+                return;
+            }
+            
+            // CKD-EPI Combined equation
+            let kappa = gender === 'female' ? 0.7 : 0.9;
+            let alpha = gender === 'female' ? -0.248 : -0.207;
+            let raceCoeff = race === 'black' ? 1.159 : 1.0;
+            let genderCoeff = gender === 'female' ? 1.018 : 1.0;
+            
+            let gfr = 135 * Math.min(scr/kappa, 1)**alpha * Math.max(scr/kappa, 1)**-0.601 
+                    * Math.min(cys/0.8, 1)**-0.375 * Math.max(cys/0.8, 1)**-0.711 
+                    * 0.995**age * genderCoeff * raceCoeff;
+            gfr = Math.round(gfr * 100) / 100;
+            
+            displayResults(gfr, 'CKD-EPI Combined Equation (2012)');
+        });
+        
+        // Display results with interpretation
+        function displayResults(gfr, formula) {
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('gfr-value').textContent = gfr;
+            document.getElementById('formula-used').textContent = formula;
+            
+            // Determine KDIGO stage
+            let stage, desc, interpretation;
+            if (gfr >= 90) {
+                stage = 'G1';
+                desc = 'Normal or high';
+                interpretation = 'Normal kidney function. Consider other markers if CKD suspected (proteinuria, structural abnormalities).';
+            } else if (gfr >= 60) {
+                stage = 'G2';
+                desc = 'Mildly decreased';
+                interpretation = 'Mildly reduced kidney function. Monitor for progression if other markers of kidney disease present.';
+            } else if (gfr >= 45) {
+                stage = 'G3a';
+                desc = 'Mild-moderate';
+                interpretation = 'Moderately reduced kidney function. Evaluate for complications (anemia, bone disease). Consider nephrology referral if progressive.';
+            } else if (gfr >= 30) {
+                stage = 'G3b';
+                desc = 'Moderate-severe';
+                interpretation = 'Moderate to severely reduced kidney function. Monitor for complications and consider nephrology referral.';
+            } else if (gfr >= 15) {
+                stage = 'G4';
+                desc = 'Severely decreased';
+                interpretation = 'Severely reduced kidney function. Prepare for renal replacement therapy. Nephrology referral recommended.';
+            } else {
+                stage = 'G5';
+                desc = 'Kidney failure';
+                interpretation = 'Kidney failure. Requires renal replacement therapy or conservative management. Urgent nephrology referral.';
+            }
+            
+            document.getElementById('kdigo-stage').textContent = stage;
+            document.getElementById('kdigo-desc').textContent = desc;
+            document.getElementById('clinical-interpretation').textContent = interpretation;
+        }
+    </script>
+</body>
+</html>
